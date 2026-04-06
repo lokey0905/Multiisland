@@ -1,0 +1,39 @@
+*.iml
+.gradle
+/local.properties
+local.properties
+/.idea/
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+
+# Sensitive files
+*.jks
+*.keystore
+*.p12
+*.pem
+*.key
+*.der
+*.csr
+*.crt
+
+# Environment / local config
+.env
+.env.*
+!*.env.example
+
+# Firebase / Google service configs (keep out of public repo unless intentional)
+google-services.json
+app/google-services.json
+app/src/**/google-services.json
+
+# Local machine artifacts
+*.log
