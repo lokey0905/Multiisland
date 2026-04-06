@@ -61,6 +61,10 @@ class ProfileProvisionRepository(
         return shellExecutor.exec("pm install-existing --user $userId $packageName")
     }
 
+    suspend fun uninstallForUser(userId: Int, packageName: String): ShellResult {
+        return shellExecutor.exec("pm uninstall --user $userId $packageName")
+    }
+
     suspend fun setProfileOwner(userId: Int, componentName: String): ShellResult {
         return shellExecutor.exec("dpm set-profile-owner --user $userId $componentName")
     }

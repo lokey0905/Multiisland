@@ -27,6 +27,8 @@ data class MainUiState(
     val users: List<UserInfo> = emptyList(),
     val profileNameInput: String = "Island",
     val packageNameInput: String = "com.oasisfeng.island",
+    val installPackageNameInput: String = "com.oasisfeng.island",
+    val uninstallPackageNameInput: String = "com.google.android.tts",
     val componentNameInput: String = "com.oasisfeng.island/.IslandDeviceAdminReceiver",
     val commandInput: String = "pm list users",
     val selectedUserId: Int = 0,
@@ -40,6 +42,12 @@ class MainViewModel(
     private val shizukuShellExecutor: ShizukuShellExecutor,
     private val rootShellExecutor: RootShellExecutor
 ) : ViewModel() {
+
+    companion object {
+        private const val PACKAGE_GBOARD = "com.google.android.inputmethod.latin"
+        private const val PACKAGE_GOOGLE_TTS = "com.google.android.tts"
+        private const val PACKAGE_SYSTEM_UPDATER = "com.android.updater"
+    }
 
     private val _uiState = MutableStateFlow(MainUiState())
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
@@ -63,6 +71,14 @@ class MainViewModel(
 
     fun updatePackageName(value: String) {
         _uiState.update { it.copy(packageNameInput = value) }
+    }
+
+    fun updateInstallPackageName(value: String) {
+        _uiState.update { it.copy(installPackageNameInput = value) }
+    }
+
+    fun updateUninstallPackageName(value: String) {
+        _uiState.update { it.copy(uninstallPackageNameInput = value) }
     }
 
     fun updateComponentName(value: String) {
@@ -185,9 +201,19 @@ ${log.stderr.ifBlank { "(empty)" }}""".trimIndent()
         val state = uiState.value
         runSingleCommand(
             title = "Install existing for user ${state.selectedUserId}",
-            command = "pm install-existing --user ${state.selectedUserId} ${state.packageNameInput.trim()}"
+            command = "pm install-existing --user ${state.selectedUserId} ${state.installPackageNameInput.trim()}"
         ) { repo ->
-            repo.installExistingForUser(state.selectedUserId, state.packageNameInput.trim())
+            repo.installExistingForUser(state.selectedUserId, state.installPackageNameInput.trim())
+        }
+    }
+
+    fun uninstallForSelectedUser() {
+        val state = uiState.value
+        runSingleCommand(
+            title = "Uninstall package for user ${state.selectedUserId}",
+            command = "pm uninstall --user ${state.selectedUserId} ${state.uninstallPackageNameInput.trim()}"
+        ) { repo ->
+            repo.uninstallForUser(state.selectedUserId, state.uninstallPackageNameInput.trim())
         }
     }
 
@@ -198,6 +224,32 @@ ${log.stderr.ifBlank { "(empty)" }}""".trimIndent()
             command = "dpm set-profile-owner --user ${state.selectedUserId} ${state.componentNameInput.trim()}"
         ) { repo ->
             repo.setProfileOwner(state.selectedUserId, state.componentNameInput.trim())
+        }
+    }
+
+    fun applyKeyboardQuickFixForSelectedUser() {
+        val state = uiState.value
+        val userId = state.selectedUserId
+        runBusyAction("Keyboard quick fix") { repo, modeUsed ->
+            // 鍵盤修復流程：先補裝 Gboard，再移除 Google TTS。
+            val installGboard = repo.installExistingForUser(userId, PACKAGE_GBOARD)
+            addResultLog("Install Gboard for user $userId", installGboard, modeUsed)
+
+            val removeGoogleTts = repo.uninstallForUser(userId, PACKAGE_GOOGLE_TTS)
+            addResultLog("Remove com.google.android.tts for user $userId", removeGoogleTts, modeUsed)
+
+            refreshDeviceCapabilities()
+            null
+        }
+    }
+
+    fun removeSystemUpdaterForSelectedUser() {
+        val state = uiState.value
+        runSingleCommand(
+            title = "Remove system updater for user ${state.selectedUserId}",
+            command = "pm uninstall --user ${state.selectedUserId} $PACKAGE_SYSTEM_UPDATER"
+        ) { repo ->
+            repo.uninstallForUser(state.selectedUserId, PACKAGE_SYSTEM_UPDATER)
         }
     }
 

@@ -110,8 +110,17 @@ fun MainScreen(
             item {
                 InstallExistingSection(
                     state = state,
-                    onPackageNameChange = viewModel::updatePackageName,
-                    onInstall = viewModel::installExistingForSelectedUser
+                    onPackageNameChange = viewModel::updateInstallPackageName,
+                    onInstall = viewModel::installExistingForSelectedUser,
+                    onKeyboardQuickFix = viewModel::applyKeyboardQuickFixForSelectedUser
+                )
+            }
+            item {
+                UninstallSection(
+                    state = state,
+                    onPackageNameChange = viewModel::updateUninstallPackageName,
+                    onUninstall = viewModel::uninstallForSelectedUser,
+                    onRemoveSystemUpdater = viewModel::removeSystemUpdaterForSelectedUser
                 )
             }
             item {
@@ -273,19 +282,48 @@ private fun UsersSection(
 private fun InstallExistingSection(
     state: MainUiState,
     onPackageNameChange: (String) -> Unit,
-    onInstall: () -> Unit
+    onInstall: () -> Unit,
+    onKeyboardQuickFix: () -> Unit
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text("安裝 App 到指定 user", style = MaterialTheme.typography.titleMedium)
             Text("Selected userId: ${state.selectedUserId}")
             OutlinedTextField(
-                value = state.packageNameInput,
+                value = state.installPackageNameInput,
                 onValueChange = onPackageNameChange,
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text("Package name") }
             )
             Button(onClick = onInstall, enabled = !state.busy) { Text("pm install-existing") }
+            Button(onClick = onKeyboardQuickFix, enabled = !state.busy) {
+                Text("一鍵修復鍵盤（加 Gboard / 移除 Google TTS）")
+            }
+        }
+    }
+}
+
+@Composable
+private fun UninstallSection(
+    state: MainUiState,
+    onPackageNameChange: (String) -> Unit,
+    onUninstall: () -> Unit,
+    onRemoveSystemUpdater: () -> Unit
+) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("移除指定 user 的 App", style = MaterialTheme.typography.titleMedium)
+            Text("Selected userId: ${state.selectedUserId}")
+            OutlinedTextField(
+                value = state.uninstallPackageNameInput,
+                onValueChange = onPackageNameChange,
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("Package name") }
+            )
+            Button(onClick = onUninstall, enabled = !state.busy) { Text("pm uninstall") }
+            Button(onClick = onRemoveSystemUpdater, enabled = !state.busy) {
+                Text("一鍵移除系統更新（com.android.updater）")
+            }
         }
     }
 }
