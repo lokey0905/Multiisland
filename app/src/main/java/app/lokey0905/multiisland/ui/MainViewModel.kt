@@ -45,6 +45,7 @@ class MainViewModel(
 
     companion object {
         private const val PACKAGE_GBOARD = "com.google.android.inputmethod.latin"
+        private const val COMPONENT_GBOARD_IME = "$PACKAGE_GBOARD/com.android.inputmethod.latin.LatinIME"
         private const val PACKAGE_GOOGLE_TTS = "com.google.android.tts"
         private const val PACKAGE_SYSTEM_UPDATER = "com.android.updater"
     }
@@ -250,6 +251,16 @@ ${log.stderr.ifBlank { "(empty)" }}""".trimIndent()
             command = "pm uninstall --user ${state.selectedUserId} $PACKAGE_SYSTEM_UPDATER"
         ) { repo ->
             repo.uninstallForUser(state.selectedUserId, PACKAGE_SYSTEM_UPDATER)
+        }
+    }
+
+    fun setGboardAsDefaultImeForSelectedUser() {
+        val state = uiState.value
+        runSingleCommand(
+            title = "Set default IME for user ${state.selectedUserId}",
+            command = "ime set --user ${state.selectedUserId} $COMPONENT_GBOARD_IME"
+        ) { repo ->
+            repo.setDefaultImeForUser(state.selectedUserId, COMPONENT_GBOARD_IME)
         }
     }
 

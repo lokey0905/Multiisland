@@ -112,7 +112,8 @@ fun MainScreen(
                     state = state,
                     onPackageNameChange = viewModel::updateInstallPackageName,
                     onInstall = viewModel::installExistingForSelectedUser,
-                    onKeyboardQuickFix = viewModel::applyKeyboardQuickFixForSelectedUser
+                    onKeyboardQuickFix = viewModel::applyKeyboardQuickFixForSelectedUser,
+                    onSetDefaultIme = viewModel::setGboardAsDefaultImeForSelectedUser
                 )
             }
             item {
@@ -283,7 +284,8 @@ private fun InstallExistingSection(
     state: MainUiState,
     onPackageNameChange: (String) -> Unit,
     onInstall: () -> Unit,
-    onKeyboardQuickFix: () -> Unit
+    onKeyboardQuickFix: () -> Unit,
+    onSetDefaultIme: () -> Unit
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -298,6 +300,9 @@ private fun InstallExistingSection(
             Button(onClick = onInstall, enabled = !state.busy) { Text("pm install-existing") }
             Button(onClick = onKeyboardQuickFix, enabled = !state.busy) {
                 Text("一鍵修復鍵盤（加 Gboard / 移除 Google TTS）")
+            }
+            Button(onClick = onSetDefaultIme, enabled = !state.busy) {
+                Text("設 Gboard 為預設輸入法")
             }
         }
     }

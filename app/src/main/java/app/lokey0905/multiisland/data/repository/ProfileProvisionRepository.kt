@@ -69,6 +69,10 @@ class ProfileProvisionRepository(
         return shellExecutor.exec("dpm set-profile-owner --user $userId $componentName")
     }
 
+    suspend fun setDefaultImeForUser(userId: Int, imeComponent: String): ShellResult {
+        return shellExecutor.exec("ime set --user $userId $imeComponent")
+    }
+
     suspend fun getMaxUsers(): Int? {
         val result = shellExecutor.exec("pm get-max-users")
         return parseFirstInt(result.stdout)
