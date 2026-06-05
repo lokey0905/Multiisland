@@ -111,6 +111,7 @@ class MainViewModel(
             """[${log.time}] ${log.title}
 Mode: ${log.mode}
 Command: ${log.command}
+ExitCode: ${log.exitCode}
 Success: ${log.success}
 stdout:
 ${log.stdout.ifBlank { "(empty)" }}
@@ -154,13 +155,37 @@ ${log.stderr.ifBlank { "(empty)" }}""".trimIndent()
     fun createManagedProfile() {
         val state = uiState.value
         runBusyAction("Create managed profile") { repo, modeUsed ->
-            repo.createManagedProfile(
+            val results = repo.createManagedProfile(
                 profileName = state.profileNameInput.trim(),
                 packageName = state.packageNameInput.trim(),
                 componentName = state.componentNameInput.trim()
-            ).forEach { addResultLog("Create managed profile", it, modeUsed) }
+            )
+            addResultLogs("Create managed profile", results, modeUsed)
             refreshDeviceCapabilities()
             null
+        }
+    }
+
+    fun previewCleanupLikeReferenceProfileForSelectedUser() {
+        val state = uiState.value
+        runBusyAction("Preview cleanup like user 10") { repo, modeUsed ->
+            val results = repo.previewCleanupSystemLauncherAppsLikeReferenceProfile(
+                userId = state.selectedUserId
+            )
+            addResultLogs("Preview cleanup like user 10", results, modeUsed)
+            "previewCleanupSystemLauncherAppsLikeReferenceProfile"
+        }
+    }
+
+    fun cleanupLikeReferenceProfileForSelectedUser() {
+        val state = uiState.value
+        runBusyAction("Cleanup like user 10") { repo, modeUsed ->
+            val results = repo.cleanupSystemLauncherAppsLikeReferenceProfile(
+                userId = state.selectedUserId
+            )
+            addResultLogs("Cleanup like user 10", results, modeUsed)
+            refreshDeviceCapabilities()
+            "cleanupSystemLauncherAppsLikeReferenceProfile"
         }
     }
 
@@ -332,6 +357,10 @@ ${log.stderr.ifBlank { "(empty)" }}""".trimIndent()
         addLog(title = title, mode = mode, result = result)
     }
 
+    private fun addResultLogs(title: String, results: List<ShellResult>, mode: ShellMode) {
+        results.asReversed().forEach { addResultLog(title, it, mode) }
+    }
+
     // 保留目前選擇；若已不存在再 fallback，避免每次 refresh 都跳回 0。
     private fun resolveSelectedUserId(currentSelectedUserId: Int, users: List<UserInfo>): Int {
         if (users.any { it.id == currentSelectedUserId }) {
@@ -346,6 +375,7 @@ ${log.stderr.ifBlank { "(empty)" }}""".trimIndent()
             title = title,
             mode = mode,
             command = result.command,
+            exitCode = result.exitCode,
             success = result.success,
             stdout = result.stdout,
             stderr = result.stderr

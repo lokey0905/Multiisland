@@ -7,6 +7,7 @@ data class OperationLog(
     val title: String,
     val mode: ShellMode,
     val command: String,
+    val exitCode: Int,
     val success: Boolean,
     val stdout: String,
     val stderr: String

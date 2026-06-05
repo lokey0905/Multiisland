@@ -108,6 +108,13 @@ fun MainScreen(
                 )
             }
             item {
+                CleanupLikeReferenceSection(
+                    state = state,
+                    onPreviewCleanup = viewModel::previewCleanupLikeReferenceProfileForSelectedUser,
+                    onCleanup = viewModel::cleanupLikeReferenceProfileForSelectedUser
+                )
+            }
+            item {
                 InstallExistingSection(
                     state = state,
                     onPackageNameChange = viewModel::updateInstallPackageName,
@@ -280,6 +287,35 @@ private fun UsersSection(
 }
 
 @Composable
+private fun CleanupLikeReferenceSection(
+    state: MainUiState,
+    onPreviewCleanup: () -> Unit,
+    onCleanup: () -> Unit
+) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("以 user 10 清理 launcher app", style = MaterialTheme.typography.titleMedium)
+            Text("Selected userId: ${state.selectedUserId}")
+            val enabled = !state.busy && state.selectedUserId != 0 && state.selectedUserId < 900
+            Button(
+                onClick = onPreviewCleanup,
+                enabled = enabled,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Preview cleanup like user 10")
+            }
+            Button(
+                onClick = onCleanup,
+                enabled = enabled,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Cleanup like user 10")
+            }
+        }
+    }
+}
+
+@Composable
 private fun InstallExistingSection(
     state: MainUiState,
     onPackageNameChange: (String) -> Unit,
@@ -397,6 +433,7 @@ private fun LogSection(
                             Text("[$time] ${log.title}")
                             Text("Mode: ${log.mode}")
                             Text("Command: ${log.command}")
+                            Text("ExitCode: ${log.exitCode}")
                             Text("Result: ${if (log.success) "Success" else "Failed"}")
                             Text("stdout: ${log.stdout.ifBlank { "(empty)" }}")
                             Text("stderr: ${log.stderr.ifBlank { "(empty)" }}")
